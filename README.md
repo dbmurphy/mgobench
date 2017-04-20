@@ -1,0 +1,2 @@
+# mgobench
+Mongo benchmarking
