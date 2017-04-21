@@ -14,12 +14,12 @@ var (
 )
 
 type TaskResult struct {
-	Count     int32
+	Count     int
 	TimeTaken time.Duration
 }
 
 type Task interface {
-	Run() (TaskResult, error)
+	Run() (*TaskResult, error)
 	Label() string
 }
 
@@ -38,7 +38,7 @@ type InsertTask struct {
 	Name string
 }
 
-func (t InsertTask) Run() (TaskResult, error) {
+func (t InsertTask) Run() (*TaskResult, error) {
 	c, err := t.SM.Coll()
 
 	if err != nil {
@@ -50,7 +50,7 @@ func (t InsertTask) Run() (TaskResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	r := TaskResult{
+	r := &TaskResult{
 		Count:     len(t.Docs),
 		TimeTaken: time.Since(st),
 	}

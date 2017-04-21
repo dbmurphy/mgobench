@@ -36,18 +36,18 @@ func (mc MgoManager) Coll() (*mgo.Collection, error) {
 		panic("nil mgo session")
 	}
 	if mc.CFn == nil {
-		return errors.New("CollectionBindFunc 'CFn' is nil")
+		return nil, errors.New("CollectionBindFunc 'CFn' is nil")
 	}
 
 	return mc.CFn(mc.Session)
 }
 
-func NewMgoManagerWithDefaultBinder(s *mgo.Session, db string, coll string) MgoManager {
+func NewMgoManagerWithDefaultBinder(s *mgo.Session, db string, coll string) *MgoManager {
 	cfn := NewCollectionBindFunc(db, coll)
 	if cfn == nil {
 		return nil
 	}
-	return MgoManager{
+	return &MgoManager{
 		Session: s,
 		CFn:     cfn,
 	}
