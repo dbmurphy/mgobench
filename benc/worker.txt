@@ -1,0 +1,34 @@
+package main
+
+import "fmt"
+
+// BufferPool is used to recive task
+type BufferPool struct {
+	T interface{}
+}
+
+func NewBufferPool(bufferSize int) (pool chan BufferPool) {
+	pool = make(chan BufferPool, bufferSize)
+	return
+
+}
+
+type aa struct {
+	Name string
+}
+
+func runa(ab *aa) {
+	fmt.Println(":fsdfsdf")
+}
+
+func main() {
+	a := NewBufferPool(1)
+	a <- BufferPool{
+		T: &aa{
+			Name: "nitin",
+		},
+	}
+	msg := <-a
+	fmt.Println(msg.T.runa())
+
+}

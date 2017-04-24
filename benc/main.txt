@@ -1,0 +1,49 @@
+package main
+
+import (
+	"log"
+
+	mgo "gopkg.in/mgo.v2"
+)
+
+// Person hold details
+type Person struct {
+	Name  string
+	Phone string
+}
+
+// Run used to insert data in mongo
+func Run(p *Person) {
+	c, error := mongo()
+	for {
+		error = c.Insert(&Person{})
+		if error != nil {
+			log.Fatal(error)
+		}
+
+	}
+}
+
+func mongo() (*mgo.Collection, error) {
+	session, err := mgo.Dial("127.0.0.1:27017")
+	if err != nil {
+		panic(err)
+	}
+	// Optional. Switch the session to a monotonic behavior.
+	session.SetMode(mgo.Monotonic, true)
+	c := session.Copy()
+	s := c.DB("bench").C("order")
+	return s, nil
+}
+
+func main() {
+	a := StartPool(1)
+	for {
+		a.list <- struct{}{}
+	}
+
+}
+
+func run(pool *BufferPool) {
+	//pool.list.Run()
+}
