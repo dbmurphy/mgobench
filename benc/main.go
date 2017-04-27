@@ -2,15 +2,15 @@ package main
 
 import (
 	"fmt"
+	wm "mgobench"
 )
 
-type Person struct {
-	Name string
-}
-
 func main() {
-	a := NewBufferPool(10)
-	ccc := NewCollectionBindFunc("ttt", "fdfd")
+	wm := wm.NewWorkerManager(3)
+	// fmt.Println(wm.NumWorker())
+	// fmt.Println(wm.IsRunning())
+
+	ccc := NewCollectionBindFunc("Oorder", "test")
 	mm := MgoManager{
 		Session: session,
 		CFn:     ccc,
@@ -21,28 +21,18 @@ func main() {
 	type person struct {
 		Name string
 	}
-	var interfaceSlice []interface{} = make([]interface{}, 1)
-	interfaceSlice[0] = &Person{
-		Name: "Nitin",
-	}
-	aaa := InsertTask{
-		MongoTask: mt,
-		Docs:      interfaceSlice,
-		Name:      "Nitin",
-	}
-	go func() {
-		for i := 0; i < 10; i++ {
-			a <- BufferPool{
-				T: aaa,
-			}
+	var data = make([]interface{}, 0)
+	data = append(data, person{"nitinsanq"})
+	for i := 0; i < 10; i++ {
+		ch := InsertTask{
+			MongoTask: mt,
+			Docs:      data,
+			Name:      "Oorder",
 		}
-		close(a)
-	}()
-	for b := range a {
-		fmt.Println("&T", b)
-		msg := b
-		fmt.Println("dffsdf", msg)
-		fmt.Println(msg.T.Run())
+		wm.Send(ch)
 	}
-
+	tr := wm.Result()
+	for d := range tr {
+		fmt.Println(d.Count, "time", d.TimeTaken)
+	}
 }
