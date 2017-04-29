@@ -31,7 +31,7 @@ func (client *Influxdb) InsertData(measurement string, tag string, field float64
 
 func NewInfluxClient() *Influxdb {
 
-	c, err := client.NewUDPClient(client.UDPConfig{Addr: "localhost:8089"})
+	c, err := client.NewUDPClient(client.UDPConfig{Addr: "10.5.2.143:8089"})
 	if err != nil {
 		panic(err.Error())
 	}

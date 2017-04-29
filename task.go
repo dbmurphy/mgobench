@@ -1,21 +1,23 @@
 package mgobench
 
 import (
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 	"time"
+
+	mgo "gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
-var (
-	session, err = mgo.Dial("server1.example.com,server2.example.com")
-	//session.SetMode(mgo.Monotonic, true)
-	Col      = session.DB("test").C("test")
-	_   Task = (*InsertTask)(nil)
-)
+// var (
+// 	session, err = mgo.Dial("127.0.0.1:27017")
+// 	//session.SetMode(mgo.Monotonic, true)
+// 	Col      = session.DB("test").C("test")
+// 	_   Task = (*InsertTask)(nil)
+// )
 
 type TaskResult struct {
 	Count     int
 	TimeTaken time.Duration
+	session   *mgo.Session
 }
 
 type Task interface {
@@ -40,7 +42,6 @@ type InsertTask struct {
 
 func (t InsertTask) Run() (*TaskResult, error) {
 	c, err := t.SM.Coll()
-
 	if err != nil {
 		return nil, err
 	}
@@ -53,6 +54,7 @@ func (t InsertTask) Run() (*TaskResult, error) {
 	r := &TaskResult{
 		Count:     len(t.Docs),
 		TimeTaken: time.Since(st),
+		session:   t.SM.Session,
 	}
 	return r, nil
 }
@@ -61,13 +63,6 @@ func (t InsertTask) Label() string {
 	return t.Name
 }
 
-type FlatT1Doc struct {
-	ID    bson.ObjectId `bson:"_id,omitempty`
-	StrF  string        `bson:"strf"`
-	IntF  int64         `bson:"intf"`
-	BoolF bool          `bson:"boolf"`
-	TimeF time.Time     `bson:"timef"`
-}
-
-type FlatT1InsertTask struct {
+func (tr *TaskResult) Close() {
+	defer tr.session.Close()
 }

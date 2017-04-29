@@ -74,14 +74,13 @@ func (w *workerManager) T() chan<- Task {
 func worker(t <-chan Task, ch chan TaskResult) {
 	go func() {
 		for c := range t {
+
 			res, err := c.Run()
-			if err != nil {
-				ch <- TaskResult{
-					Count:     0,
-					TimeTaken: 0,
-				}
+			if err == nil {
+				defer res.Close()
+				ch <- *res
 			}
-			ch <- *res
+
 		}
 	}()
 
@@ -97,11 +96,11 @@ func NewWorkerManager(n uint32) WorkerManager {
 	var wg sync.WaitGroup
 	wm := &workerManager{
 		numWorker: n,
-		tasks:     make(chan Task, 10000),
-		result:    make(chan TaskResult, 10000),
+		tasks:     make(chan Task, 1000000),
+		result:    make(chan TaskResult, 1000000),
 		wait:      &wg,
 	}
-	wm.wait.Add(int(n))
+	wm.wait.Add(1)
 	wm.start()
 	return wm
 }
