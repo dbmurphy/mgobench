@@ -55,10 +55,11 @@ func NewResultWorker(n int, rate time.Duration) *resultWorker {
 			count:   0,
 		},
 	}
-	r.wg.Add(1)
-	go r.worker(1)
-	r.wg.Add(1)
-	go r.worker(2)
+
+	for i := 0; i < n; i++ {
+		r.wg.Add(1)
+		go r.worker(i)
+	}
 	return r
 }
 
@@ -84,6 +85,7 @@ func (r *resultWorker) worker(id int) {
 	ticker := time.NewTicker(r.rate)
 	defer ticker.Stop()
 	counter := 0
+	influxdb := mgobench.NewInfluxClient()
 
 Loop:
 	for {
@@ -91,7 +93,7 @@ Loop:
 
 		case <-ticker.C:
 			// send to influxdb
-			go sendToInflux(r, id)
+			go sendToInflux(r, id, influxdb)
 
 		case val := <-r.C:
 			r.stats.add(val.TimeTaken, val.Count)
@@ -99,17 +101,17 @@ Loop:
 
 		case <-r.shutdown:
 			// send to influxdb
-			sendToInflux(r, id)
+			sendToInflux(r, id, influxdb)
 			break Loop
 		}
 	}
 	fmt.Println("total processed results by worker ", counter)
 }
 
-func sendToInflux(r *resultWorker, id int) {
+func sendToInflux(r *resultWorker, id int, influxdb *mgobench.Influxdb) {
 	avg, cou := r.stats.get()
 	// fmt.Println("on ", id, " second passed inserted %s in avg time %s", cou, avg)
-	mgobench.InsertData("insertTime", "insert_time", avg)
-	mgobench.InsertData("insertCount", "insert_count", cou)
+	influxdb.InsertData("insertTime", "insert_time", avg)
+	influxdb.InsertData("insertCount", "insert_count", cou)
 	r.stats.reset()
 }
