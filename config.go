@@ -5,12 +5,28 @@ import (
 )
 
 type Config struct {
-	Thread int
+	Thread   int
 	Duration int
-	Logfile string `toml:"logfile"`
-	Mongos []string
-	Database string
-	Collection string
+
+	Testcases map[string]testcase
+	Influxdb  influx
+	Mongo     mongo
+}
+
+type testcase struct {
+	Name     string
+	Duration string
+}
+
+type influx struct {
+	ConnectionString string `toml:"connection_string"`
+	Database         string
+}
+
+type mongo struct {
+	ConnectionString string `toml:"connection_string"`
+	Database         string
+	Collection       string
 }
 
 func (c Config) Validate() bool {
@@ -20,7 +36,7 @@ func (c Config) Validate() bool {
 func LoadConfig(p string) (Config, error) {
 	var c = Config{}
 
-	_, err:= toml.DecodeFile(p, &c)
+	_, err := toml.DecodeFile(p, &c)
 	if err != nil {
 		return c, err
 	}
