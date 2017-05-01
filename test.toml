@@ -6,12 +6,12 @@ duration = 10
 #collection = "test"
 
 [mongo]
-connection_string = "mongodb://localhost:27017/"
+connection_string = "mongodb://10.5.2.143:27017"
 database = "mgobench"
 collection = "test"
 
 [influxdb]
-connection_string = "mongodb://localhost:27017/"
+connection_string = "10.5.2.143:8089"
 database = "mgobench"
 
 [testcases]

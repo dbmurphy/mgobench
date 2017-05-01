@@ -29,9 +29,9 @@ func (client *Influxdb) InsertData(measurement string, tag string, field float64
 	createMetrics(client.conn, measurement, tags, fields)
 }
 
-func NewInfluxClient() *Influxdb {
+func NewInfluxClient(config *Config) *Influxdb {
 
-	c, err := client.NewUDPClient(client.UDPConfig{Addr: "10.5.2.143:8089"})
+	c, err := client.NewUDPClient(client.UDPConfig{Addr: config.Influxdb.ConnectionString})
 	if err != nil {
 		panic(err.Error())
 	}

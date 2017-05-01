@@ -30,6 +30,7 @@ type mongo struct {
 }
 
 func (c Config) Validate() bool {
+	// TODO : validate config struct
 	return true
 }
 

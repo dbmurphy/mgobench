@@ -42,7 +42,7 @@ func (s *istats) reset() {
 
 // NewResultWorker returns a resultWorker that will emit from the C
 // channel send data to influxdb only 'n' times every 'rate' seconds.
-func NewResultWorker(n int, rate time.Duration) *resultWorker {
+func NewResultWorker(n int, rate time.Duration, config *mgobench.Config) *resultWorker {
 	seedTime, _ := time.ParseDuration("0ms")
 	r := &resultWorker{
 
@@ -55,10 +55,10 @@ func NewResultWorker(n int, rate time.Duration) *resultWorker {
 			count:   0,
 		},
 	}
-
+	influxdb := mgobench.NewInfluxClient(config)
 	for i := 0; i < n; i++ {
 		r.wg.Add(1)
-		go r.worker(i)
+		go r.worker(i, influxdb)
 	}
 	return r
 }
@@ -80,12 +80,11 @@ func (r *resultWorker) Stop() {
 	close(r.C)
 }
 
-func (r *resultWorker) worker(id int) {
+func (r *resultWorker) worker(id int, influxdb *mgobench.Influxdb) {
 	defer r.wg.Done()
 	ticker := time.NewTicker(r.rate)
 	defer ticker.Stop()
 	counter := 0
-	influxdb := mgobench.NewInfluxClient()
 
 Loop:
 	for {
@@ -96,6 +95,7 @@ Loop:
 			go sendToInflux(r, id, influxdb)
 
 		case val := <-r.C:
+			fmt.Println(val)
 			r.stats.add(val.TimeTaken, val.Count)
 			counter++
 

@@ -1,6 +1,7 @@
 package mgobench
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -39,6 +40,7 @@ func (w *workerManager) start() error {
 	return nil
 }
 func (w *workerManager) Result() <-chan TaskResult {
+
 	return w.result
 }
 
@@ -78,6 +80,8 @@ func worker(t <-chan Task, ch chan TaskResult) {
 			res, err := c.Run()
 			if err == nil {
 				defer res.Close()
+				fmt.Println(res.Count, "    ", res.TimeTaken)
+
 				ch <- *res
 			}
 
@@ -92,12 +96,12 @@ func (w *workerManager) Send(t Task) error {
 }
 
 // NewWorkerManager returns workerManager
-func NewWorkerManager(n uint32) WorkerManager {
+func NewWorkerManager(n uint32, r chan TaskResult) WorkerManager {
 	var wg sync.WaitGroup
 	wm := &workerManager{
 		numWorker: n,
 		tasks:     make(chan Task, 1000000),
-		result:    make(chan TaskResult, 1000000),
+		result:    r,
 		wait:      &wg,
 	}
 	wm.wait.Add(1)
