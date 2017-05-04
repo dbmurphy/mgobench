@@ -33,7 +33,7 @@ type workerManager struct {
 func (w *workerManager) start() error {
 	var i uint32
 	for i = 0; i < w.numWorker; i++ {
-		w.wait.Add(1)
+		// w.wait.Add(1)
 		go worker(w.tasks, w.result, w)
 	}
 	w.status = WORKERMGR_STARTED
@@ -51,7 +51,7 @@ func (w *workerManager) Stop() {
 		return
 	}
 	close(w.tasks)
-	w.wait.Wait()
+	// w.wait.Wait()
 	w.status = WORKERMGR_STOPPED
 	return
 }
@@ -76,7 +76,7 @@ func (w *workerManager) T() chan<- Task {
 func worker(t <-chan Task, ch chan TaskResult, w *workerManager) {
 	go func() {
 		// fmt.Println("sfsdffd", len(ch))
-		defer w.wait.Done()
+		// defer w.wait.Done()
 		for c := range t {
 
 			res, err := c.Run()
@@ -105,7 +105,7 @@ func NewWorkerManager(n uint32, r chan TaskResult) WorkerManager {
 		result:    r,
 		wait:      &wg,
 	}
-
+	wm.wait.Add(1)
 	wm.start()
 	return wm
 }

@@ -17,7 +17,7 @@ func launchWorker() {
 func Start(c *mgobench.Config) {
 
 	var session, _ = mgo.Dial(c.Mongo.ConnectionString)
-	newSessCopy := session.Copy()
+	// newSessCopy := session.Copy()
 	// mongo stuff
 
 	// Result Worker Manager
@@ -32,17 +32,16 @@ func Start(c *mgobench.Config) {
 	TestCaseRegistry.Add("flatT1DocTest", cases.FlatT1DocTest)
 	TestCaseRegistry.Add("flatT1InsertTaskTest", cases.FlatT1InsertTaskTest)
 	// Execute test Cases
+	mt := mgobench.MongoTask{
+		SM: mgobench.MgoManager{
+			Session: session,
+			CFn:     mgobench.NewCollectionBindFunc("mgobench", "t1"),
+		},
+	}
 
-	// listMt := [3]mgobench.MongoTask{mt, mt1, mt2}
-
+	count := 0
 	for testcase, test := range c.Testcases {
-		mt := mgobench.MongoTask{
-			SM: mgobench.MgoManager{
-				Session: newSessCopy,
-				CFn:     mgobench.NewCollectionBindFunc("mgobench", testcase),
-			},
-		}
-		fmt.Println("address for mt ", mt)
+
 		fmt.Printf("Testcases: %s (%s, %s)\n", testcase, test.Name, test.Duration)
 
 		dura, err := time.ParseDuration(test.Duration)
@@ -54,13 +53,13 @@ func Start(c *mgobench.Config) {
 		if err != nil {
 			panic(err)
 		}
-		TestCaseFunc(dura, r, wm, mt)
 
+		TestCaseFunc(dura, r, wm, mt)
+		count++
 		fmt.Printf("-------------------- %s\t - test completed ------------------", testcase)
 		fmt.Println("")
 
 	}
-
 	wm.Stop()
 	r.Stop()
 

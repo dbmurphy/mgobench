@@ -37,7 +37,7 @@ Loop:
 			// send to influxdb
 
 			break Loop
-			// default:
+		default:
 
 			wm.Send(ch)
 		}

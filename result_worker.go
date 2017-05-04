@@ -118,7 +118,7 @@ Loop:
 func sendToInflux(r *ResultWorker, id int, influxdb *Influxdb) {
 	defer r.stats.reset()
 	avg, cou := r.stats.get()
-	// fmt.Println(avg, "                     ", cou)
+	fmt.Println(avg, "                     ", cou)
 	influxdb.InsertData("insertTime", "insert_time", avg)
 	influxdb.InsertData("insertCount", "insert_count", cou)
 
