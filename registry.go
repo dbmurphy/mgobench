@@ -1,20 +1,22 @@
 package mgobench
 
-import "time"
-import "sync"
-import "errors"
+import (
+	"errors"
+	"sync"
+	"time"
+)
 
 // NewFunc will used as type of data
-type NewFunc func(d time.Duration)
-
+// type NewFunc func(d time.Duration)
+type NewFunc func(time.Duration, *ResultWorker, WorkerManager, MongoTask)
 type Registry struct {
 	sync.RWMutex
 	list map[string]NewFunc
 }
 
 // Newregistry initialize registry
-func Newregistry() Registry {
-	return Registry{
+func Newregistry() *Registry {
+	return &Registry{
 		list: make(map[string]NewFunc),
 	}
 }

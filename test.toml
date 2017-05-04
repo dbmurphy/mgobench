@@ -1,25 +1,27 @@
 thread = 2
-duration = 10
-#logfile = "/var/log/test.log"
-#mongos = [ "localhost:7564", "localhost:7564", "localhost:7564" ]
-#database = "test"
-#collection = "test"
+duration = 1
 
 [mongo]
-connection_string = "mongodb://10.5.2.143:27017"
+connection_string = "mongodb://xavient:1%4034567b@127.0.0.1:27017"
 database = "mgobench"
 collection = "test"
 
 [influxdb]
-connection_string = "10.5.2.143:8089"
+connection_string = "127.0.0.1:8089"
 database = "mgobench"
 
 [testcases]
-  # test cases for mongo bench
-  [testcases.a]
-  duration = "1hr"
-  name = "twotest"
 
-  [testcases.b]
-  duration = "1hr"
-  name = "onetest"
+  # test cases for mongo bench
+  
+  [testcases.flatT1InsertTaskTest]
+  duration = "5s"
+  name = "flatT1InsertTaskTest"
+
+  [testcases.emptyTest]
+  duration = "5s"
+  name = "emptyTest"
+
+  [testcases.flatT1DocTest]
+  duration = "5s"
+  name = "flatt1docTest"

@@ -2,8 +2,10 @@ package mgobench
 
 import (
 	"errors"
-	"gopkg.in/mgo.v2"
+	"fmt"
 	"strings"
+
+	"gopkg.in/mgo.v2"
 )
 
 // IsBlankString return if string is only space or empty / zero length
@@ -14,6 +16,7 @@ func IsBlankString(s string) bool {
 type CollectionBindFunc func(s *mgo.Session) (*mgo.Collection, error)
 
 func NewCollectionBindFunc(db string, coll string) CollectionBindFunc {
+	fmt.Println(db, "                 ", coll)
 	if IsBlankString(db) || IsBlankString(coll) {
 		return nil
 	}
@@ -22,6 +25,7 @@ func NewCollectionBindFunc(db string, coll string) CollectionBindFunc {
 			return nil, errors.New("nil session")
 		}
 		sc := s.Copy()
+		// fmt.Printf("Database ---- %s \n Collection ---- %s \n", db, coll)
 		return sc.DB(db).C(coll), nil
 	}
 }

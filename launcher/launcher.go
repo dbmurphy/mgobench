@@ -4,90 +4,66 @@ import (
 	"fmt"
 	"time"
 
+	mgo "gopkg.in/mgo.v2"
+
 	mgobench "github.com/mgobench"
 	cases "github.com/mgobench/cases"
-	trw "github.com/mgobench/taskResultWorker"
-	mgo "gopkg.in/mgo.v2"
 )
+
+func launchWorker() {
+
+}
 
 func Start(c *mgobench.Config) {
 
-	fmt.Println(c.Thread)
-	fmt.Println("======= Mongo Info ========")
-	fmt.Println(c.Mongo.ConnectionString)
-	fmt.Println(c.Mongo.Database)
-	fmt.Println(c.Mongo.Collection)
-	fmt.Println("======= Influx Info ========")
-	fmt.Println(c.Influxdb.ConnectionString)
-	fmt.Println(c.Influxdb.Database)
-	fmt.Println("======= testCase Info ========")
-	for testcase, test := range c.Testcases {
-
-		fmt.Printf("Server: %s (%s, %s)\n", testcase, test.Name, test.Duration)
-	}
-
-	// for testcase, case := range c.Testcases {
-	// 	fmt.Printf("Server: %s (%s, %s)\n", testcase, case.Name, case.Duration)
-	// 	// getRegisttry(case.Name)
-	// 	// for time.After(case.Duration){
-
-	// 	// 	fdsfsafsd...CollectionBindFunc
-	// 	// 	time.Sleep(15 * time.Minuet)
-	// 	// }
-	// }
-
+	var session, _ = mgo.Dial(c.Mongo.ConnectionString)
+	newSessCopy := session.Copy()
 	// mongo stuff
 
-	var session, _ = mgo.Dial(c.Mongo.ConnectionString) // handle error replace _ with handler for err
-	ccc := mgobench.NewCollectionBindFunc(c.Mongo.Database, c.Mongo.Collection)
-	mm := mgobench.MgoManager{
-		Session: session,
-		CFn:     ccc,
-	}
-	mt := mgobench.MongoTask{
-		SM: mm,
-	}
-
 	// Result Worker Manager
-	r := trw.NewResultWorker(5, 2*time.Second, c)
+	r := mgobench.NewResultWorker(1, 1*time.Second, c)
 
 	//  Worker Manager
 	wm := mgobench.NewWorkerManager(3, r.C)
 
-	// TODO : get test cases from config and map it to function using registry
-	type person struct {
-		Name string
-	}
-	var data = make([]interface{}, 0)
-	data = append(data, cases.EmptyTest())
-	ch := mgobench.InsertTask{
-		MongoTask: mt,
-		Docs:      data,
-		Name:      "Oorder",
-	}
+	// Register each of the Test Cases
+	TestCaseRegistry := mgobench.Newregistry()
+	TestCaseRegistry.Add("emptyTest", cases.EmptyDocTest)
+	TestCaseRegistry.Add("flatT1DocTest", cases.FlatT1DocTest)
+	TestCaseRegistry.Add("flatT1InsertTaskTest", cases.FlatT1InsertTaskTest)
+	// Execute test Cases
 
-Loop:
-	for {
-		select {
+	// listMt := [3]mgobench.MongoTask{mt, mt1, mt2}
 
-		case <-time.After(10 * time.Minute):
-			// send to influxdb
-			break Loop
-		default:
-			wm.Send(ch)
+	for testcase, test := range c.Testcases {
+		mt := mgobench.MongoTask{
+			SM: mgobench.MgoManager{
+				Session: newSessCopy,
+				CFn:     mgobench.NewCollectionBindFunc("mgobench", testcase),
+			},
 		}
+		fmt.Println("address for mt ", mt)
+		fmt.Printf("Testcases: %s (%s, %s)\n", testcase, test.Name, test.Duration)
+
+		dura, err := time.ParseDuration(test.Duration)
+		if err != nil {
+
+			panic(err)
+		}
+		TestCaseFunc, err := TestCaseRegistry.Get(testcase)
+		if err != nil {
+			panic(err)
+		}
+		TestCaseFunc(dura, r, wm, mt)
+
+		fmt.Printf("-------------------- %s\t - test completed ------------------", testcase)
+		fmt.Println("")
+
 	}
+
 	wm.Stop()
 	r.Stop()
 
-	// TODO: optimize result channel
-	// tr := wm.Result()  // No need to have this
+	// TODO : get test cases from config and map it to function using registry
 
-	// for d := range tr {
-	// 	r.C <- d
-	// 	//defer d.Session.Close()
-	// 	fmt.Println(d.Count, "time", d.TimeTaken)
-	// }
-	// wm.Stop()
-	// r.Stop()
 }
