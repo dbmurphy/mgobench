@@ -1,7 +1,6 @@
 package cases
 
 import (
-	"fmt"
 	"time"
 
 	"gopkg.in/mgo.v2/bson"
@@ -16,17 +15,7 @@ type FlatT1InsertTask struct {
 }
 
 func FlatT1InsertTaskTest(t time.Duration, r *mgobench.ResultWorker, wm mgobench.WorkerManager, mt mgobench.MongoTask) {
-	var data = make([]interface{}, 0)
-	data = append(data, &FlatT1InsertTask{
-		ID:        bson.NewObjectId(),
-		RandomStr: goRand.RandString(8),
-	})
-	ch := mgobench.InsertTask{
-		MongoTask: mt,
-		Docs:      data,
-		Name:      "Oorder",
-	}
-	fmt.Println("******", ch)
+
 	killTime := time.After(t)
 Loop:
 	for {
@@ -38,6 +27,16 @@ Loop:
 
 			break Loop
 		default:
+			var data = make([]interface{}, 0)
+			data = append(data, &FlatT1InsertTask{
+				ID:        bson.NewObjectId(),
+				RandomStr: goRand.RandString(8),
+			})
+			ch := mgobench.InsertTask{
+				MongoTask: mt,
+				Docs:      data,
+				Name:      "Oorder",
+			}
 
 			wm.Send(ch)
 		}

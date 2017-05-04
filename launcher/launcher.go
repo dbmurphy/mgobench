@@ -19,7 +19,12 @@ func Start(c *mgobench.Config) {
 	var session, _ = mgo.Dial(c.Mongo.ConnectionString)
 	// newSessCopy := session.Copy()
 	// mongo stuff
-
+	mt := mgobench.MongoTask{
+		SM: mgobench.MgoManager{
+			Session: session,
+			CFn:     mgobench.NewCollectionBindFunc(c.Mongo.Database, "testresult"),
+		},
+	}
 	// Result Worker Manager
 	r := mgobench.NewResultWorker(1, 1*time.Second, c)
 
@@ -31,16 +36,10 @@ func Start(c *mgobench.Config) {
 	TestCaseRegistry.Add("emptyTest", cases.EmptyDocTest)
 	TestCaseRegistry.Add("flatT1DocTest", cases.FlatT1DocTest)
 	TestCaseRegistry.Add("flatT1InsertTaskTest", cases.FlatT1InsertTaskTest)
-	// Execute test Cases
-	mt := mgobench.MongoTask{
-		SM: mgobench.MgoManager{
-			Session: session,
-			CFn:     mgobench.NewCollectionBindFunc("mgobench", "t1"),
-		},
-	}
 
 	count := 0
 	for testcase, test := range c.Testcases {
+		// Execute test Cases
 
 		fmt.Printf("Testcases: %s (%s, %s)\n", testcase, test.Name, test.Duration)
 
@@ -60,8 +59,11 @@ func Start(c *mgobench.Config) {
 		fmt.Println("")
 
 	}
+
 	wm.Stop()
+	fmt.Println("stopping")
 	r.Stop()
+	fmt.Println("result stoping")
 
 	// TODO : get test cases from config and map it to function using registry
 

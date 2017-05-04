@@ -3,7 +3,7 @@ duration = 1
 
 [mongo]
 connection_string = "mongodb://xavient:1%4034567b@127.0.0.1:27017"
-database = "mgobench"
+database = "killer"
 collection = "test"
 
 [influxdb]

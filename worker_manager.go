@@ -1,6 +1,7 @@
 package mgobench
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -22,18 +23,18 @@ type WorkerManager interface {
 
 // BufferPool is used to recive task
 type workerManager struct {
-	sync.RWMutex
 	numWorker uint32
 	tasks     chan Task
 	result    chan TaskResult
 	status    WorkerMgrStatus
-	wait      *sync.WaitGroup
+	wait      sync.WaitGroup
+	shutdown  chan bool
 }
 
 func (w *workerManager) start() error {
 	var i uint32
 	for i = 0; i < w.numWorker; i++ {
-		// w.wait.Add(1)
+		w.wait.Add(1)
 		go worker(w.tasks, w.result, w)
 	}
 	w.status = WORKERMGR_STARTED
@@ -45,27 +46,26 @@ func (w *workerManager) Result() <-chan TaskResult {
 }
 
 func (w *workerManager) Stop() {
-	w.Lock()
-	defer w.Unlock()
+	fmt.Println("stoped called")
+	fmt.Println(WORKERMGR_STOPPED, "   current status  ", w.status)
 	if w.status == WORKERMGR_STOPPED {
 		return
 	}
+	close(w.shutdown)
 	close(w.tasks)
-	// w.wait.Wait()
+	w.wait.Wait()
 	w.status = WORKERMGR_STOPPED
 	return
 }
 
 // IsRunning returns if workers are running
 func (w *workerManager) IsRunning() bool {
-	w.RLock()
-	defer w.RLock()
+
 	return w.status == WORKERMGR_STARTED
 }
 
 func (w *workerManager) NumWorker() uint32 {
-	w.RLock()
-	defer w.RLock()
+
 	return w.numWorker
 }
 
@@ -74,20 +74,33 @@ func (w *workerManager) T() chan<- Task {
 }
 
 func worker(t <-chan Task, ch chan TaskResult, w *workerManager) {
-	go func() {
-		// fmt.Println("sfsdffd", len(ch))
-		// defer w.wait.Done()
-		for c := range t {
 
-			res, err := c.Run()
+	defer func() {
+		w.wait.Done()
+		fmt.Println("########## down")
+	}()
+
+Loop:
+	for {
+		select {
+
+		case val := <-t:
+
+			// fmt.Println("sfsdffd", len(ch))
+
+			res, err := val.Run()
 			if err == nil {
-				defer res.Close()
 
 				ch <- *res
+
 			}
 
+		case <-w.shutdown:
+			break Loop
 		}
-	}()
+	}
+
+	///////////////////////////////////////////////////////////////
 
 }
 
@@ -103,9 +116,10 @@ func NewWorkerManager(n uint32, r chan TaskResult) WorkerManager {
 		numWorker: n,
 		tasks:     make(chan Task, 1000000),
 		result:    r,
-		wait:      &wg,
+		wait:      wg,
+		shutdown:  make(chan bool),
 	}
-	wm.wait.Add(1)
+
 	wm.start()
 	return wm
 }
