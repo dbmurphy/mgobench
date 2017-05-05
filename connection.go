@@ -2,7 +2,6 @@ package mgobench
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	"gopkg.in/mgo.v2"
@@ -16,7 +15,7 @@ func IsBlankString(s string) bool {
 type CollectionBindFunc func(s *mgo.Session) (*mgo.Collection, error)
 
 func NewCollectionBindFunc(db string, coll string) CollectionBindFunc {
-	fmt.Println(db, "                 ", coll)
+
 	if IsBlankString(db) || IsBlankString(coll) {
 		return nil
 	}

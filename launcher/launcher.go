@@ -19,12 +19,7 @@ func Start(c *mgobench.Config) {
 	var session, _ = mgo.Dial(c.Mongo.ConnectionString)
 	// newSessCopy := session.Copy()
 	// mongo stuff
-	mt := mgobench.MongoTask{
-		SM: mgobench.MgoManager{
-			Session: session,
-			CFn:     mgobench.NewCollectionBindFunc(c.Mongo.Database, "testresult"),
-		},
-	}
+
 	// Result Worker Manager
 	r := mgobench.NewResultWorker(1, 1*time.Second, c)
 
@@ -39,8 +34,15 @@ func Start(c *mgobench.Config) {
 
 	count := 0
 	for testcase, test := range c.Testcases {
-		// Execute test Cases
 
+		// Execute test Cases on diffrent collections
+		mt := mgobench.MongoTask{
+			SM: mgobench.MgoManager{
+				Session: session,
+				CFn:     mgobench.NewCollectionBindFunc(c.Mongo.Database, testcase),
+			},
+			Val: testcase,
+		}
 		fmt.Printf("Testcases: %s (%s, %s)\n", testcase, test.Name, test.Duration)
 
 		dura, err := time.ParseDuration(test.Duration)

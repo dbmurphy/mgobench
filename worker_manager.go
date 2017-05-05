@@ -86,8 +86,6 @@ Loop:
 
 		case val := <-t:
 
-			// fmt.Println("sfsdffd", len(ch))
-
 			res, err := val.Run()
 			if err == nil {
 
@@ -104,7 +102,8 @@ Loop:
 
 }
 
-func (w *workerManager) Send(t Task) error {
+func (w workerManager) Send(t Task) error {
+
 	w.tasks <- t
 	return nil
 }
@@ -114,7 +113,7 @@ func NewWorkerManager(n uint32, r chan TaskResult) WorkerManager {
 	var wg sync.WaitGroup
 	wm := &workerManager{
 		numWorker: n,
-		tasks:     make(chan Task, 1000000),
+		tasks:     make(chan Task, 100),
 		result:    r,
 		wait:      wg,
 		shutdown:  make(chan bool),

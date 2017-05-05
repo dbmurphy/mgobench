@@ -24,7 +24,8 @@ type Task interface {
 }
 
 type MongoTask struct {
-	SM MgoManager
+	SM  MgoManager
+	Val string
 }
 
 type EmptyDoc struct {
@@ -38,20 +39,20 @@ type InsertTask struct {
 	Name string
 }
 
-func (t InsertTask) Run() (*TaskResult, error) {
-	c, err := t.SM.Coll()
-	// fmt.Println(t.)s
+func (it InsertTask) Run() (*TaskResult, error) {
+	c, err := it.SM.Coll()
+
 	if err != nil {
 		return nil, err
 	}
 
 	st := time.Now()
-	err = c.Insert(t.Docs...)
+	err = c.Insert(it.Docs...)
 	if err != nil {
 		return nil, err
 	}
 	r := &TaskResult{
-		Count:     len(t.Docs),
+		Count:     len(it.Docs),
 		TimeTaken: time.Since(st),
 	}
 	return r, nil
